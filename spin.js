@@ -133,8 +133,10 @@
     fps: 20,              // Frames per second when using setTimeout()
     zIndex: 2e9,          // Use a high z-index by default
     className: 'spinner', // CSS class to assign to the element
+    lineClass: 'line',    // CSS class to assign to individual lines
     top: 'auto',          // center vertically
-    left: 'auto'          // center horizontally
+    left: 'auto',         // center horizontally
+    rtl: false            // position right-to-left friendly
   };
 
   /** The constructor */
@@ -153,13 +155,16 @@
       var mid = o.radius+o.length+o.width;
       var ep; // element position
       var tp; // target position
+      var left;
 
       if (target) {
         target.insertBefore(el, target.firstChild||null);
         tp = pos(target);
         ep = pos(el);
+        left = o.left == 'auto' ? tp.x-ep.x + (target.offsetWidth >> 1) : o.left+mid;
+        if (o.rtl) left = -left;
         css(el, {
-          left: (o.left == 'auto' ? tp.x-ep.x + (target.offsetWidth >> 1) : o.left+mid) + 'px',
+          left: left + 'px',
           top: (o.top == 'auto' ? tp.y-ep.y + (target.offsetHeight >> 1) : o.top+mid)  + 'px'
         });
       }
@@ -200,16 +205,17 @@
       var seg;
 
       function fill(color, shadow) {
-        return css(createEl(), {
-          position: 'absolute',
-          width: (o.length+o.width) + 'px',
-          height: o.width + 'px',
-          background: color,
-          boxShadow: shadow,
-          transformOrigin: 'left',
-          transform: 'rotate(' + ~~(360/o.lines*i+o.rotate) + 'deg) translate(' + o.radius+'px' +',0)',
-          borderRadius: (o.width>>1) + 'px'
-        });
+        var opts = {
+            position: 'absolute',
+            width: (o.length+o.width) + 'px',
+            height: o.width + 'px',
+            boxShadow: shadow,
+            transformOrigin: 'left',
+            transform: 'rotate(' + ~~(360/o.lines*i+o.rotate) + 'deg) translate(' + o.radius+'px' +',0)',
+            borderRadius: (o.width>>1) + 'px'
+        };
+        if (color!==false) opts['background'] = color; 
+        return css(createEl(0, {className:o.lineClass}), opts);
       }
       for (; i < o.lines; i++) {
         seg = css(createEl(), {
@@ -301,13 +307,7 @@
     }
   }();
 
-  if (typeof define == 'function' && define.amd) {
-    define(function() {
-      return Spinner;
-    });
-  }
-  else {
-    window.Spinner = Spinner;
-  }
+  window.Spinner = Spinner;
 
 })(window, document);
+
